@@ -50,6 +50,26 @@ This function is called by the front-end when the user decides to place a bet. I
 
 ```
 
+## placeWild
+It's called by rhe front-end after user's latest received number was 1. There's no placing bet, the bet remains the same from the last round but new random number is generated.
+``` javascript
+    function placeWild(uint256 multiplier) external {
+        require(
+            requestIdToRandomNumber[addressToRequestId[msg.sender]] == 1,
+            "Players last winning number must be 1."
+        );
+        require(multiplier >= 1, "Multiplier must be between 1 and 13.");
+        require(multiplier < 14, "Multiplier must be between 1 and 13.");
+        require(
+            _LLTH.balanceOf(address(this)) >= bets[msg.sender].mul(multiplier),
+            "Not enough $LLTH token in game's wallet."
+        );
+
+        getRandomNumber(msg.sender);
+        multipliers[msg.sender] = multiplier;
+    }
+ ```
+
 ## withdraw
 By calling this function, the owner account can withdraw the amount given as input from the contract's LLTH balance.
 ``` javascript
@@ -70,18 +90,19 @@ When round is over and the random number is arrived, it transfers prize if there
         require(player != address(0), "Address cannot be null.");
 
         if (multipliers[player] == getWinningMultiplier(player)) {
-            uint256 amount = getWinningMultiplier(msg.sender)
-                .mul(bets[player]);
+            uint256 amount = getWinningMultiplier(msg.sender).mul(bets[player]);
 
             require(
                 _LLTH.balanceOf(address(this)) >= amount,
                 "Not enough $LLTH in game's wallet."
             );
             _LLTH.transfer(player, amount);
+            delete multipliers[player];
+            delete bets[player];
+            delete addressToRequestId[player];
+        } else if (multipliers[player] == getWinningMultiplier(player)) {
+            delete multipliers[player];
+            delete addressToRequestId[player];
         }
-
-        delete multipliers[player];
-        delete bets[player];
-        delete addressToRequestId[player];
     }
 ```
