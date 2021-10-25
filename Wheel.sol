@@ -9,10 +9,10 @@
  *
  *  #CryptoDemonz, Wheel of Fortune
  *
- * It’s a wheel with 13 segments, each segment defines a multiplier like 2x, 3x, …, 12x, 13x, and it has a wild segment which gives a free round. 
- * The player can place a bet and has to figure out which multiplier will be the result when the wheel is stopped. 
- * After betting, the wheel starts spinning and spinning, then it stops. 
- * Anyone who successfully figured out the winning multiplier where the wheel’s stopped, gets the prize: bet amount x winning multiplier. 
+ * It’s a wheel with 13 segments, each segment defines a multiplier like 2x, 3x, …, 12x, 13x, and it has a wild segment which gives a free round.
+ * The player can place a bet and has to figure out which multiplier will be the result when the wheel is stopped.
+ * After betting, the wheel starts spinning and spinning, then it stops.
+ * Anyone who successfully figured out the winning multiplier where the wheel’s stopped, gets the prize: bet amount x winning multiplier.
  * Otherwise, the player loses their bet. With this ruleset players have 7.69% chance to win or at least get a new round where they can try again.
  *
  */
@@ -129,8 +129,8 @@ contract Wheel is Ownable, VRFConsumerBase {
         internal
         override
     {
-        uint256 randomNumber = (randomness % (maxMultiplier.add(1) - minMultiplier)) +
-            minMultiplier; // random number between 1 and 13
+        uint256 randomNumber = (randomness %
+            (maxMultiplier.add(1) - minMultiplier)) + minMultiplier; // random number between 1 and 13
         requestIdToRandomNumber[requestId] = randomNumber;
 
         emit RandomIsArrived(requestId, randomNumber);
@@ -176,6 +176,22 @@ contract Wheel is Ownable, VRFConsumerBase {
         multipliers[msg.sender] = multiplier;
     }
 
+    function placeWild(uint256 multiplier) external {
+        require(
+            requestIdToRandomNumber[addressToRequestId[msg.sender]] == 1,
+            "Players last winning number must be 1."
+        );
+        require(multiplier >= 1, "Multiplier must be between 1 and 13.");
+        require(multiplier < 14, "Multiplier must be between 1 and 13.");
+        require(
+            _LLTH.balanceOf(address(this)) >= bets[msg.sender].mul(multiplier),
+            "Not enough $LLTH token in game's wallet."
+        );
+
+        getRandomNumber(msg.sender);
+        multipliers[msg.sender] = multiplier;
+    }
+
     function withdraw(uint256 amount) external onlyOwner {
         require(
             _LLTH.balanceOf(address(this)) >= amount,
@@ -190,18 +206,19 @@ contract Wheel is Ownable, VRFConsumerBase {
         require(player != address(0), "Address cannot be null.");
 
         if (multipliers[player] == getWinningMultiplier(player)) {
-            uint256 amount = getWinningMultiplier(msg.sender)
-                .mul(bets[player]);
+            uint256 amount = getWinningMultiplier(msg.sender).mul(bets[player]);
 
             require(
                 _LLTH.balanceOf(address(this)) >= amount,
                 "Not enough $LLTH in game's wallet."
             );
             _LLTH.transfer(player, amount);
+            delete multipliers[player];
+            delete bets[player];
+            delete addressToRequestId[player];
+        } else if (multipliers[player] == getWinningMultiplier(player)) {
+            delete multipliers[player];
+            delete addressToRequestId[player];
         }
-
-        delete multipliers[player];
-        delete bets[player];
-        delete addressToRequestId[player];
     }
 }
