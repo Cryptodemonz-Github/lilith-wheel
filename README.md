@@ -1,0 +1,3 @@
+# CryptoDemonz, Wheel Of Destiny
+
+It’s a wheel with 13 segments, each segment defines a multiplier like 2x, 3x, …, 12x, 13x, and it has a wild segment which gives a free round. The player can place a bet and has to figure out which multiplier will be the result when the wheel is stopped. After betting, the wheel starts spinning and spinning, then it stops. Anyone who successfully figured out the winning multiplier where the wheel’s stopped, gets the prize: bet amount x winning multiplier. Otherwise, the player loses their bet. With this ruleset players have 7.69% chance to win or at least get a new round where they can try again.
