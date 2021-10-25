@@ -129,7 +129,7 @@ contract Wheel is Ownable, VRFConsumerBase {
         internal
         override
     {
-        uint256 randomNumber = (randomness % (maxMultiplier - minMultiplier)) +
+        uint256 randomNumber = (randomness % (maxMultiplier.add(1) - minMultiplier)) +
             minMultiplier; // random number between 2 and 13
         requestIdToRandomNumber[requestId] = randomNumber;
 
@@ -191,9 +191,7 @@ contract Wheel is Ownable, VRFConsumerBase {
 
         if (multipliers[player] == getWinningMultiplier(player)) {
             uint256 amount = getWinningMultiplier(msg.sender)
-                .mul(bets[player])
-                .mul(15)
-                .div(10);
+                .mul(bets[player]);
 
             require(
                 _LLTH.balanceOf(address(this)) >= amount,
