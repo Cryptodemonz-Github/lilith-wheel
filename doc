@@ -19,7 +19,7 @@ It's an overriden Chainlink callback function, called when random number is rece
         internal
         override
     {
-        uint256 randomNumber = (randomness % (maxMultiplier - minMultiplier)) +
+        uint256 randomNumber = (randomness % (maxMultiplier.add(1) - minMultiplier)) +
             minMultiplier; // random number between 2 and 13
         requestIdToRandomNumber[requestId] = randomNumber;
 
@@ -66,14 +66,12 @@ By calling this function, the owner account can withdraw the amount given as inp
 ## closeRound
 When round is over and the random number is arrived, it transfers prize if there's any and resets mappings and array.
 ``` javascript
-     function closeRound(address player) external onlyOwner {
+    function closeRound(address player) external onlyOwner {
         require(player != address(0), "Address cannot be null.");
 
         if (multipliers[player] == getWinningMultiplier(player)) {
             uint256 amount = getWinningMultiplier(msg.sender)
-                .mul(bets[player])
-                .mul(15)
-                .div(10);
+                .mul(bets[player]);
 
             require(
                 _LLTH.balanceOf(address(this)) >= amount,
