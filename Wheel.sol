@@ -9,11 +9,11 @@
  *
  *  #CryptoDemonz, Wheel of Fortune
  *
- *  It's a wheel with 12 segments, each segment defines a multiplier like 2x, 3x, …, 12x, 13x.
- *  The player can place a bet and has to figure out which multiplier will be the result when the wheel is stopped.
- *  After betting, the wheel starts spinning and spinning, then it stops.
- *  Anyone who successfully figured out the winning multiplier where the wheel’s stopped,
- *  gets the prize: bet amount x winning multiplier. Otherwise, the player loses their bet.
+ * It’s a wheel with 13 segments, each segment defines a multiplier like 2x, 3x, …, 12x, 13x, and it has a wild segment which gives a free round. 
+ * The player can place a bet and has to figure out which multiplier will be the result when the wheel is stopped. 
+ * After betting, the wheel starts spinning and spinning, then it stops. 
+ * Anyone who successfully figured out the winning multiplier where the wheel’s stopped, gets the prize: bet amount x winning multiplier. 
+ * Otherwise, the player loses their bet. With this ruleset players have 7.69% chance to win or at least get a new round where they can try again.
  *
  */
 
@@ -35,7 +35,7 @@ contract Wheel is Ownable, VRFConsumerBase {
     IERC20 internal _LLTH;
 
     // minimum value of the wheel segment multiplier
-    uint256 public minMultiplier = 2;
+    uint256 public minMultiplier = 1;
 
     // maximum value of the wheel segment multiplier
     uint256 public maxMultiplier = 13;
@@ -130,7 +130,7 @@ contract Wheel is Ownable, VRFConsumerBase {
         override
     {
         uint256 randomNumber = (randomness % (maxMultiplier.add(1) - minMultiplier)) +
-            minMultiplier; // random number between 2 and 13
+            minMultiplier; // random number between 1 and 13
         requestIdToRandomNumber[requestId] = randomNumber;
 
         emit RandomIsArrived(requestId, randomNumber);
@@ -159,8 +159,8 @@ contract Wheel is Ownable, VRFConsumerBase {
 
     // Called by front-end when placing bet. It saves player's data and tranfers their bet to this contract's address.
     function placeBet(uint256 bet, uint256 multiplier) external {
-        require(multiplier > 1, "Multiplier must be between 2 and 13.");
-        require(multiplier < 14, "Multiplier must be between 2 and 13.");
+        require(multiplier >= 1, "Multiplier must be between 1 and 13.");
+        require(multiplier < 14, "Multiplier must be between 1 and 13.");
         require(
             _LLTH.balanceOf(address(msg.sender)) >= bet,
             "Not enough $LLTH token in your wallet."
